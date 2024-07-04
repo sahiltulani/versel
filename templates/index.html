@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Teacher Chatbot</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2; /* Light gray background */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure full viewport height */
+        }
+
+        .header {
+            background-color: #4682b4; /* Dark blue header */
+            color: #ffffff;
+            padding: 10px 0;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow for header */
+            z-index: 1000; /* Ensure header stays on top */
+        }
+
+        .header a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 15px;
+            margin: 0 5px;
+            display: inline-block;
+            font-size: 14px;
+            background-color: #87cefa; /* Light blue buttons */
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .header a:hover {
+            background-color: #5a9bd3; /* Darker blue on hover */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #ffffff; /* White container background */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            flex: 1; /* Grow to fill remaining space */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content {
+            flex: 1; /* Grow to fill remaining space */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chatbox {
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #ffffff; /* White chatbox background */
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            flex-grow: 1; /* Grow to fill remaining space */
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+            margin: 0;
+        }
+
+        .send-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            background-color: #4682b4; /* Dark blue send button */
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .send-button:hover {
+            background-color: #5a9bd3; /* Darker blue on hover */
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            padding: 10px 20px;
+            border: 1px solid #4682b4; /* Dark blue border */
+            border-radius: 5px;
+            background-color: #4682b4; /* Dark blue background */
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+
+        .file-label:hover {
+            background-color: #5a9bd3; /* Darker blue on hover */
+            border-color: #5a9bd3; /* Darker blue on hover */
+        }
+
+        .bot-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            line-height: 1.6;
+            background-color: #87cefa; /* Light blue bot message background */
+            text-align: left;
+            margin-right: 20%;
+        }
+
+        .bot-message p {
+            margin: 5px 0;
+        }
+
+        /* Credits Section */
+        .credits {
+            background-color: #4682b4;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 999; /* Ensure footer stays above content */
+            display: none; /* Initially hide footer */
+            transition: transform 0.3s ease; /* Smooth transition effect */
+        }
+
+        /* Show footer when chatbox is scrolled */
+        .scrolled .credits {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="#">Home</a>
+        <a href="#">About Us</a>
+        <a href="#">Contact</a>
+    </div>
+
+    <div class="container">
+        <div class="content">
+            <div class="chatbox" id="chatbox"></div>
+            <div class="input-container">
+                <input type="text" id="userInput" class="user-input" placeholder="Enter your question">
+                <button id="sendButton" class="send-button">Send</button>
+            </div>
+            <div class="controls">
+                <input type="file" id="fileInput" class="file-input">
+                <label for="fileInput" class="file-label">Upload PDF</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="credits" id="credits">
+        <p>Credits: Sahil - Backend and AI Engineer</p>
+        <p>Contact: 9988412462</p>
+        <p>Email: sahiltulani12@gmail.com</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const chatbox = document.getElementById('chatbox');
+
+            // Show footer when chatbox is scrolled
+            chatbox.addEventListener('scroll', function () {
+                if (chatbox.scrollTop > 0) {
+                    document.getElementById('credits').classList.add('scrolled');
+                } else {
+                    document.getElementById('credits').classList.remove('scrolled');
+                }
+            });
+
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const fileInput = document.getElementById('fileInput');
+
+            userInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent default Enter key behavior (form submission)
+                    sendMessage(); // Call sendMessage function when Enter key is pressed
+                }
+            });
+
+            sendButton.addEventListener('click', function () {
+                sendMessage(); // Call sendMessage function when Send button is clicked
+            });
+
+            fileInput.addEventListener('change', function () {
+                uploadPDF(); // Call uploadPDF function when a file is selected
+            });
+        });
+
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value.trim();
+            const chatbox = document.getElementById('chatbox');
+
+            if (userInput === '') return;
+
+            const userMessageElement = document.createElement('div');
+            userMessageElement.className = 'message user';
+            userMessageElement.textContent = userInput;
+            chatbox.appendChild(userMessageElement);
+            document.getElementById('userInput').value = '';
+
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question: userInput })
+            });
+
+            const data = await response.json();
+            const botMessageElement = document.createElement('div');
+            botMessageElement.className = 'bot-message';
+            botMessageElement.innerHTML = data.response; // Display response as HTML
+            chatbox.appendChild(botMessageElement);
+
+            // Scroll to the bottom of the chatbox
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        async function uploadPDF() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a PDF file first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        }
+    </script>
+
+</body>
+</html>
